@@ -1,122 +1,112 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useState, useEffect } from 'react';
+import Kardex from './pages/Kardex';
+import Horarios from './pages/Horarios';
+import Areas from './pages/Areas';
+import Admin from './pages/Admin';
+import { obtenerToken, guardarToken, eliminarToken } from './services/api';
+import './App.css';
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [tokenActual, setTokenActual] = useState(obtenerToken());
+  const [tokenIngreso, setTokenIngreso] = useState('');
+  const [pestanaActiva, setPestanaActiva] = useState('areas');
+
+  useEffect(() => {
+    function alExpirar() {
+      setTokenActual(null);
+    }
+    window.addEventListener('sesion_expirada', alExpirar);
+    return () => {
+      window.removeEventListener('sesion_expirada', alExpirar);
+    };
+  }, []);
+
+  function iniciarSesionTemporal(e) {
+    e.preventDefault();
+    if (!tokenIngreso.trim()) return;
+    guardarToken(tokenIngreso.trim());
+    setTokenActual(tokenIngreso.trim());
+    setTokenIngreso('');
+  }
+
+  function cerrarSesion() {
+    eliminarToken();
+    setTokenActual(null);
+  }
+
+  if (!tokenActual) {
+    return (
+      <div className="contenedor-principal">
+        <div className="cuadro-sesion">
+          <h2>Sistema SII - Acceso</h2>
+          <p>Ingresa tu Bearer Token del SII (obtenido de Postman o del login) para continuar:</p>
+          <form onSubmit={iniciarSesionTemporal}>
+            <input
+              type="text"
+              placeholder="Bearer Token del SII..."
+              value={tokenIngreso}
+              onChange={e => setTokenIngreso(e.target.value)}
+              required
+            />
+            <button type="submit" className="boton-primario" style={{ width: '100%' }}>
+              Ingresar al Sistema
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="contenedor-principal">
+      <header className="barra-superior">
+        <div className="titulo-sistema">TecNM Celaya - Orientación y SII</div>
+        <nav className="navegacion-pestanas">
+          <button
+            type="button"
+            className={`boton-pestana ${pestanaActiva === 'areas' ? 'activa' : ''}`}
+            onClick={() => setPestanaActiva('areas')}
+          >
+            Orientación por Áreas
+          </button>
+          <button
+            type="button"
+            className={`boton-pestana ${pestanaActiva === 'kardex' ? 'activa' : ''}`}
+            onClick={() => setPestanaActiva('kardex')}
+          >
+            Kardex
+          </button>
+          <button
+            type="button"
+            className={`boton-pestana ${pestanaActiva === 'horarios' ? 'activa' : ''}`}
+            onClick={() => setPestanaActiva('horarios')}
+          >
+            Horarios
+          </button>
+          <button
+            type="button"
+            className={`boton-pestana ${pestanaActiva === 'admin' ? 'activa' : ''}`}
+            onClick={() => setPestanaActiva('admin')}
+          >
+            Administración
+          </button>
+          <button
+            type="button"
+            className="boton-pestana"
+            onClick={cerrarSesion}
+            style={{ background: 'rgba(255,255,255,0.2)' }}
+          >
+            Salir
+          </button>
+        </nav>
+      </header>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      <main className="contenido-pagina">
+        {pestanaActiva === 'areas' && <Areas />}
+        {pestanaActiva === 'kardex' && <Kardex />}
+        {pestanaActiva === 'horarios' && <Horarios />}
+        {pestanaActiva === 'admin' && <Admin />}
+      </main>
+    </div>
+  );
 }
-
-export default App
