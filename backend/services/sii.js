@@ -34,3 +34,11 @@ export async function llamarSII(ruta, { metodo = 'GET', token, cuerpo } = {}) {
 
   return datos;
 }
+
+export function responderError(res, error) {
+  if (error instanceof ErrorSII) {
+    return res.status(error.status).json({ error: error.message });
+  }
+  console.error(error);
+  return res.status(500).json({ error: 'Error interno del servidor' });
+}
