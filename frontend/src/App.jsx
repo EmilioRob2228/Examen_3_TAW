@@ -6,6 +6,7 @@ import Kardex from './pages/Kardex';
 import Horarios from './pages/Horarios';
 import Areas from './pages/Areas';
 import Admin from './pages/Admin';
+import Layout from './components/Layout';
 import { obtenerToken, eliminarToken, obtenerEstudiante } from './services/api';
 import './App.css';
 
@@ -13,14 +14,19 @@ export default function App() {
   const [tokenActual, setTokenActual] = useState(obtenerToken());
   const [pestanaActiva, setPestanaActiva] = useState('dashboard');
   const [esAdmin, setEsAdmin] = useState(false);
+  const [estudiante, setEstudiante] = useState(null);
 
   useEffect(() => {
     if (!tokenActual) {
       setEsAdmin(false);
+      setEstudiante(null);
       return;
     }
     obtenerEstudiante()
-      .then(datos => setEsAdmin(Boolean(datos?.es_admin)))
+      .then(datos => {
+        setEstudiante(datos);
+        setEsAdmin(Boolean(datos?.es_admin));
+      })
       .catch(() => setEsAdmin(false));
   }, [tokenActual]);
 
@@ -49,73 +55,19 @@ export default function App() {
   }
 
   return (
-    <div className="contenedor-principal">
-      <header className="barra-superior">
-        <div className="titulo-sistema">TecNM Celaya - Orientación y SII</div>
-        <nav className="navegacion-pestanas">
-          <button
-            type="button"
-            className={`boton-pestana ${pestanaActiva === 'dashboard' ? 'activa' : ''}`}
-            onClick={() => setPestanaActiva('dashboard')}
-          >
-            Inicio
-          </button>
-          <button
-            type="button"
-            className={`boton-pestana ${pestanaActiva === 'calificaciones' ? 'activa' : ''}`}
-            onClick={() => setPestanaActiva('calificaciones')}
-          >
-            Calificaciones
-          </button>
-          <button
-            type="button"
-            className={`boton-pestana ${pestanaActiva === 'areas' ? 'activa' : ''}`}
-            onClick={() => setPestanaActiva('areas')}
-          >
-            Orientación por Áreas
-          </button>
-          <button
-            type="button"
-            className={`boton-pestana ${pestanaActiva === 'kardex' ? 'activa' : ''}`}
-            onClick={() => setPestanaActiva('kardex')}
-          >
-            Kardex
-          </button>
-          <button
-            type="button"
-            className={`boton-pestana ${pestanaActiva === 'horarios' ? 'activa' : ''}`}
-            onClick={() => setPestanaActiva('horarios')}
-          >
-            Horarios
-          </button>
-          {esAdmin && (
-            <button
-              type="button"
-              className={`boton-pestana ${pestanaActiva === 'admin' ? 'activa' : ''}`}
-              onClick={() => setPestanaActiva('admin')}
-            >
-              Administración
-            </button>
-          )}
-          <button
-            type="button"
-            className="boton-pestana"
-            onClick={cerrarSesion}
-            style={{ background: 'rgba(255,255,255,0.2)' }}
-          >
-            Salir
-          </button>
-        </nav>
-      </header>
-
-      <main className="contenido-pagina">
-        {pestanaActiva === 'dashboard' && <Dashboard />}
-        {pestanaActiva === 'calificaciones' && <Calificaciones />}
-        {pestanaActiva === 'areas' && <Areas />}
-        {pestanaActiva === 'kardex' && <Kardex />}
-        {pestanaActiva === 'horarios' && <Horarios />}
-        {pestanaActiva === 'admin' && esAdmin && <Admin />}
-      </main>
-    </div>
+    <Layout
+      pestanaActiva={pestanaActiva}
+      onCambiarPestana={setPestanaActiva}
+      esAdmin={esAdmin}
+      estudiante={estudiante}
+      onCerrarSesion={cerrarSesion}
+    >
+      {pestanaActiva === 'dashboard' && <Dashboard />}
+      {pestanaActiva === 'calificaciones' && <Calificaciones />}
+      {pestanaActiva === 'areas' && <Areas />}
+      {pestanaActiva === 'kardex' && <Kardex />}
+      {pestanaActiva === 'horarios' && <Horarios />}
+      {pestanaActiva === 'admin' && esAdmin && <Admin />}
+    </Layout>
   );
 }
