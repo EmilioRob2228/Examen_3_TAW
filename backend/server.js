@@ -1,6 +1,8 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import rutasAuth from './routes/auth.js';
+import rutasEstudiante from './routes/estudiante.js';
 
 const app = express();
 const PUERTO = process.env.PORT || 3000;
@@ -11,6 +13,9 @@ app.use(express.json());
 app.get('/api/salud', (req, res) => {
   res.json({ estado: 'ok' });
 });
+
+app.use('/api/auth', rutasAuth);
+app.use('/api', rutasEstudiante);
 
 app.use((req, res) => {
   res.status(404).json({ error: 'Ruta no encontrada' });
