@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { LoaderCircle, BookOpen } from 'lucide-react';
 import { obtenerKardex } from '../services/api';
 
 export default function Kardex() {
@@ -24,14 +25,24 @@ export default function Kardex() {
   }
 
   if (cargando) {
-    return <div className="cargando">Cargando kardex académico...</div>;
+    return (
+      <div className="flex flex-col items-center justify-center gap-3 py-20 text-gray-500">
+        <LoaderCircle size={32} className="animate-spin text-brand-500" />
+        Cargando kardex académico...
+      </div>
+    );
   }
 
   if (error) {
     return (
-      <div className="contenedor-error">
-        <p className="mensaje-error">{error}</p>
-        <button onClick={cargarKardex} className="boton-reintentar">Reintentar</button>
+      <div className="rounded-2xl border border-red-200 bg-red-50 p-6">
+        <p className="mb-4 font-medium text-red-700">{error}</p>
+        <button
+          onClick={cargarKardex}
+          className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
+        >
+          Reintentar
+        </button>
       </div>
     );
   }
@@ -56,53 +67,71 @@ export default function Kardex() {
   });
 
   return (
-    <div className="pagina-kardex">
-      <h2>Kardex Académico</h2>
-
-      <div className="tarjeta-avance">
-        <div className="encabezado-avance">
-          <span>Porcentaje de Avance Curricular</span>
-          <span className="valor-avance">{porcentajeAvance}%</span>
+    <div className="space-y-6">
+      <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-theme-xs">
+        <div className="mb-4 flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+            <BookOpen size={22} />
+          </div>
+          <div>
+            <p className="m-0 font-semibold text-gray-800">Avance curricular</p>
+            <p className="m-0 text-sm text-gray-500">{listaMaterias.length} materias en el historial</p>
+          </div>
+          <span className="ml-auto text-2xl font-semibold text-brand-700">{porcentajeAvance}%</span>
         </div>
-        <div className="barra-fondo">
+        <div className="h-3 w-full overflow-hidden rounded-full bg-gray-100">
           <div
-            className="barra-progreso"
+            className="h-full rounded-full bg-gradient-to-r from-brand-500 to-brand-700"
             style={{ width: `${Math.min(Math.max(porcentajeAvance, 0), 100)}%` }}
           />
         </div>
       </div>
 
       {semestresOrdenados.length === 0 ? (
-        <p>No se encontraron materias registradas en el kardex.</p>
+        <div className="rounded-2xl border border-gray-200 bg-white p-10 text-center text-gray-500">
+          No se encontraron materias registradas en el kardex.
+        </div>
       ) : (
         semestresOrdenados.map(sem => (
-          <div key={sem} className="bloque-semestre">
-            <h3>{typeof sem === 'string' && sem.startsWith('Sin') ? sem : `Semestre ${sem}`}</h3>
-            <div className="tabla-responsiva">
-              <table className="tabla-datos">
+          <div key={sem} className="rounded-2xl border border-gray-200 bg-white shadow-theme-xs">
+            <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
+              <h3 className="m-0">{typeof sem === 'string' && sem.startsWith('Sin') ? sem : `Semestre ${sem}`}</h3>
+              <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
+                {gruposPorSemestre[sem].length} materias
+              </span>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[640px] text-left text-sm">
                 <thead>
-                  <tr>
-                    <th>Clave</th>
-                    <th>Materia</th>
-                    <th>Calificación</th>
-                    <th>Créditos</th>
-                    <th>Periodo</th>
-                    <th>Tipo</th>
+                  <tr className="border-b border-gray-200 bg-gray-50 text-xs uppercase tracking-wider text-gray-500">
+                    <th className="px-5 py-3 font-medium">Materia</th>
+                    <th className="px-3 py-3 text-center font-medium">Calificación</th>
+                    <th className="px-3 py-3 text-center font-medium">Créditos</th>
+                    <th className="px-3 py-3 font-medium">Periodo</th>
+                    <th className="px-5 py-3 font-medium">Tipo</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-gray-100">
                   {gruposPorSemestre[sem].map((mat, indice) => (
-                    <tr key={`${mat.clave_materia}-${indice}`}>
-                      <td><code>{mat.clave_materia}</code></td>
-                      <td>{mat.nombre_materia}</td>
-                      <td>
-                        <span className={`etiqueta-calif ${Number(mat.calificacion) >= 70 ? 'aprobada' : 'no-aprobada'}`}>
+                    <tr key={`${mat.clave_materia}-${indice}`} className="hover:bg-gray-50">
+                      <td className="px-5 py-3">
+                        <p className="m-0 font-medium text-gray-800">{mat.nombre_materia}</p>
+                        <p className="m-0 text-xs text-gray-500">{mat.clave_materia}</p>
+                      </td>
+                      <td className="px-3 py-3 text-center">
+                        <span
+                          className={`inline-flex min-w-12 justify-center rounded-full px-3 py-1 text-sm font-semibold ring-1 ring-inset ${
+                            Number(mat.calificacion) >= 70 || Number.isNaN(Number(mat.calificacion))
+                              ? 'bg-green-50 text-green-700 ring-green-600/20'
+                              : 'bg-red-50 text-red-700 ring-red-600/20'
+                          }`}
+                        >
                           {mat.calificacion}
                         </span>
                       </td>
-                      <td>{mat.creditos}</td>
-                      <td>{mat.periodo}</td>
-                      <td>{mat.descripcion}</td>
+                      <td className="px-3 py-3 text-center text-gray-600">{mat.creditos}</td>
+                      <td className="px-3 py-3 text-gray-600">{mat.periodo}</td>
+                      <td className="px-5 py-3 text-xs text-gray-500">{mat.descripcion}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -114,4 +143,3 @@ export default function Kardex() {
     </div>
   );
 }
-
