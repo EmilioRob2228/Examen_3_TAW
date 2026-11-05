@@ -1,7 +1,21 @@
 const URL_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
+function tokenExpirado(token) {
+  try {
+    const { exp } = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+    return exp ? exp * 1000 < Date.now() : false;
+  } catch {
+    return false;
+  }
+}
+
 export function obtenerToken() {
-  return sessionStorage.getItem('token');
+  const token = sessionStorage.getItem('token');
+  if (token && tokenExpirado(token)) {
+    sessionStorage.removeItem('token');
+    return null;
+  }
+  return token;
 }
 
 export function guardarToken(token) {
@@ -42,6 +56,21 @@ async function peticion(ruta, opciones = {}) {
   }
 
   return datos;
+}
+
+export async function iniciarSesion(email, password) {
+  return peticion('/api/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ email, password })
+  });
+}
+
+export async function obtenerEstudiante() {
+  return peticion('/api/estudiante');
+}
+
+export async function obtenerCalificaciones() {
+  return peticion('/api/calificaciones');
 }
 
 export async function obtenerKardex() {
