@@ -4,6 +4,14 @@ import { requiereToken } from '../middleware/requiereToken.js';
 
 const router = Router();
 
+function esCorreoAdmin(correo) {
+  const correosAdmin = (process.env.ADMIN_EMAILS || '')
+    .split(',')
+    .map(c => c.trim().toLowerCase())
+    .filter(Boolean);
+  return correosAdmin.includes((correo || '').trim().toLowerCase());
+}
+
 router.get('/estudiante', requiereToken, async (req, res) => {
   try {
     const { data } = await llamarSII('/movil/estudiante', { token: req.token });
@@ -14,7 +22,8 @@ router.get('/estudiante', requiereToken, async (req, res) => {
       creditos_acumulados: Number(data.creditos_acumulados),
       materias_cursadas: Number(data.materias_cursadas),
       materias_aprobadas: Number(data.materias_aprobadas),
-      materias_reprobadas: Number(data.materias_reprobadas)
+      materias_reprobadas: Number(data.materias_reprobadas),
+      es_admin: esCorreoAdmin(data.email)
     });
   } catch (error) {
     responderError(res, error);

@@ -6,12 +6,23 @@ import Kardex from './pages/Kardex';
 import Horarios from './pages/Horarios';
 import Areas from './pages/Areas';
 import Admin from './pages/Admin';
-import { obtenerToken, eliminarToken } from './services/api';
+import { obtenerToken, eliminarToken, obtenerEstudiante } from './services/api';
 import './App.css';
 
 export default function App() {
   const [tokenActual, setTokenActual] = useState(obtenerToken());
   const [pestanaActiva, setPestanaActiva] = useState('dashboard');
+  const [esAdmin, setEsAdmin] = useState(false);
+
+  useEffect(() => {
+    if (!tokenActual) {
+      setEsAdmin(false);
+      return;
+    }
+    obtenerEstudiante()
+      .then(datos => setEsAdmin(Boolean(datos?.es_admin)))
+      .catch(() => setEsAdmin(false));
+  }, [tokenActual]);
 
   useEffect(() => {
     function alExpirar() {
@@ -77,13 +88,15 @@ export default function App() {
           >
             Horarios
           </button>
-          <button
-            type="button"
-            className={`boton-pestana ${pestanaActiva === 'admin' ? 'activa' : ''}`}
-            onClick={() => setPestanaActiva('admin')}
-          >
-            Administración
-          </button>
+          {esAdmin && (
+            <button
+              type="button"
+              className={`boton-pestana ${pestanaActiva === 'admin' ? 'activa' : ''}`}
+              onClick={() => setPestanaActiva('admin')}
+            >
+              Administración
+            </button>
+          )}
           <button
             type="button"
             className="boton-pestana"
@@ -101,7 +114,7 @@ export default function App() {
         {pestanaActiva === 'areas' && <Areas />}
         {pestanaActiva === 'kardex' && <Kardex />}
         {pestanaActiva === 'horarios' && <Horarios />}
-        {pestanaActiva === 'admin' && <Admin />}
+        {pestanaActiva === 'admin' && esAdmin && <Admin />}
       </main>
     </div>
   );
